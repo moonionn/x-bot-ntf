@@ -98,11 +98,25 @@ fi
 echo ""
 echo "🐳 重新啟動 Docker 容器..."
 
+# 檢查使用哪個 docker compose 指令
+if command -v docker-compose >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+elif docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker compose"
+else
+    echo "❌ 錯誤：找不到 docker-compose 或 docker compose 指令"
+    echo "請確保 Docker 已正確安裝"
+    echo "📖 安裝指南: https://docs.docker.com/engine/install/"
+    exit 1
+fi
+
+echo "🔍 使用 Docker Compose 指令: $DOCKER_COMPOSE_CMD"
+
 # 停止現有容器
-docker-compose down 2>/dev/null
+$DOCKER_COMPOSE_CMD down 2>/dev/null
 
 # 重新構建並啟動
-docker-compose up -d --build
+$DOCKER_COMPOSE_CMD up -d --build
 
 echo ""
 echo "✅ 修復完成！"
@@ -110,8 +124,9 @@ echo ""
 echo "📋 接下來的步驟："
 echo "1. 編輯 .env 文件，填入正確的 Discord Bot Token 和 Gemini API Key"
 echo "2. 檢查 configs.yml 中的翻譯頻道設置"
-echo "3. 使用 'docker-compose logs -f' 查看運行日誌"
+echo "3. 使用以下指令管理服務："
 echo ""
-echo "🔗 查看日誌: docker-compose logs -f"
-echo "🔄 重啟服務: docker-compose restart"
-echo "⏹️  停止服務: docker-compose down"
+echo "🔗 查看日誌: docker compose logs -f"
+echo "🔄 重啟服務: docker compose restart"
+echo "⏹️  停止服務: docker compose down"
+echo "🚀 啟動服務: docker compose up -d"
