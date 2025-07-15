@@ -222,6 +222,8 @@ async def auto_translate_tweet(message, tweet_url, translator, target_channel_id
             result = await translator.translate_tweet(tweet_url, "繁體中文")
             
             log.info(f"翻譯結果: success={result['success']}")
+            log.info(f"發文者: {result.get('username', 'None')}")
+            log.info(f"翻譯內容長度: {len(result.get('translated_text', ''))}")
             
             if result["success"]:
                 # 創建翻譯結果embed
@@ -231,12 +233,16 @@ async def auto_translate_tweet(message, tweet_url, translator, target_channel_id
                 )
                 
                 # 添加發文者資訊（如果成功提取到）
-                if result.get("username"):
+                username = result.get("username")
+                if username and username.strip():
                     embed.add_field(
                         name="👤 發文者",
-                        value=f"@{result['username']}",
+                        value=f"@{username}",
                         inline=True
                     )
+                    log.info(f"顯示發文者信息: @{username}")
+                else:
+                    log.warning("未獲取到發文者用戶名信息")
                 
                 # 如果是發送到分離的翻譯頻道，添加來源信息
                 if is_separate_channel:
@@ -266,59 +272,75 @@ async def auto_translate_tweet(message, tweet_url, translator, target_channel_id
                 # 處理翻譯結果
                 translated_text = result["translated_text"]
                 
-                # 檢查是否有結構化的翻譯結果
-                if any(keyword in translated_text for keyword in ["翻譯一", "翻譯二", "## 詞句詳細解說"]):
-                    # 分割翻譯結果和詞句解說
-                    if "## 詞句詳細解說" in translated_text:
-                        parts = translated_text.split("## 詞句詳細解說")
-                        translation_part = parts[0].strip()
-                        explanation_part = parts[1].strip() if len(parts) > 1 else ""
-                    else:
-                        translation_part = translated_text
-                        explanation_part = ""
+                # 使用更寬鬆的關鍵字匹配來檢測結構化翻譯
+                has_structured_translation = any(keyword in translated_text for keyword in [
+                    "翻譯一", "翻譯二", "詞句詳細解說", "## ", "翻譯 (", "翻譯（"
+                ])
+                
+                if has_structured_translation:
+                    # 分離翻譯內容和詞句解說
+                    explanation_part = ""
+                    translation_part = translated_text
                     
-                    # 清理並格式化翻譯部分
-                    # 移除原文部分，只保留翻譯
+                    # 查找詞句詳細解說部分
+                    explanation_markers = ["## 詞句詳細解說", "詞句詳細解說", "## "]
+                    for marker in explanation_markers:
+                        if marker in translated_text:
+                            parts = translated_text.split(marker, 1)
+                            if len(parts) == 2:
+                                translation_part = parts[0].strip()
+                                explanation_part = parts[1].strip()
+                                break
+                    
+                    # 清理翻譯部分，移除原文，只保留翻譯內容
                     lines = translation_part.split('\n')
-                    translation_content = []
-                    include_line = False
+                    cleaned_lines = []
+                    found_translation = False
                     
                     for line in lines:
-                        line_stripped = line.strip()
-                        # 開始包含翻譯一或翻譯二的內容
-                        if "翻譯一" in line_stripped or "翻譯二" in line_stripped:
-                            include_line = True
-                            translation_content.append(line)
-                        elif include_line and line_stripped:
-                            # 跳過原文部分
-                            if not (line_stripped.endswith("原文：") or "原文：" in line_stripped):
-                                translation_content.append(line)
+                        line_clean = line.strip()
+                        # 跳過原文行
+                        if line_clean.endswith('原文：') or '原文：' in line_clean:
+                            continue
+                        # 找到翻譯行後開始收集
+                        if '翻譯' in line_clean and ('(' in line_clean or '（' in line_clean):
+                            found_translation = True
+                            cleaned_lines.append(line)
+                        elif found_translation and line_clean:
+                            cleaned_lines.append(line)
                     
-                    final_translation = '\n'.join(translation_content).strip()
+                    # 如果沒有找到結構化翻譯，使用原始內容
+                    if not cleaned_lines:
+                        final_translation = translated_text
+                    else:
+                        final_translation = '\n'.join(cleaned_lines).strip()
                     
-                    # 如果沒有找到格式化內容，使用原始翻譯
-                    if not final_translation:
+                    # 確保翻譯內容不為空
+                    if not final_translation.strip():
                         final_translation = translated_text
                     
                     embed.add_field(
                         name="🌏 翻譯結果",
-                        value=final_translation[:1024] if final_translation else translated_text[:1024],
+                        value=final_translation[:1024],
                         inline=False
                     )
                     
-                    # 添加詞句詳細解說（如果存在）
-                    if explanation_part and len(explanation_part.strip()) > 10:
-                        # 限制詞句解說的長度
-                        if len(explanation_part) > 1000:
-                            explanation_part = explanation_part[:1000] + "..."
+                    # 添加詞句詳細解說（如果存在且有實際內容）
+                    if explanation_part and len(explanation_part.strip()) > 20:
+                        # 清理解說內容
+                        explanation_clean = explanation_part.strip()
+                        
+                        # 限制長度
+                        if len(explanation_clean) > 1000:
+                            explanation_clean = explanation_clean[:1000] + "..."
                         
                         embed.add_field(
                             name="📚 詞句詳細解說",
-                            value=explanation_part,
+                            value=explanation_clean,
                             inline=False
                         )
                 else:
-                    # 簡單翻譯格式 - 沒有結構化內容
+                    # 沒有結構化內容，直接顯示翻譯
                     embed.add_field(
                         name="🌏 翻譯結果", 
                         value=translated_text[:1024],
