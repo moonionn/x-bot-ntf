@@ -131,6 +131,181 @@ cd x_bot_ntf
 ./deploy.sh
 ```
 
+## 🔄 自動啟動配置（重要！）
+
+為了讓您的 X Bot 在 VM 重啟後自動啟動並持續運行，請進行以下配置：
+
+### 1. 配置 Docker 自動啟動
+
+首先確保 Docker 服務開機自動啟動：
+
+```bash
+# 啟用 Docker 開機自動啟動
+sudo systemctl enable docker
+
+# 檢查狀態
+sudo systemctl status docker
+```
+
+### 2. 配置 X Bot 自動重啟
+
+編輯 `docker-compose.yml` 確保有重啟策略：
+
+```yaml
+version: '3.8'
+
+services:
+  x-bot:
+    build: .
+    container_name: x-bot-ntf
+    restart: unless-stopped  # 這是關鍵！除非手動停止，否則總是重啟
+    environment:
+      - DATA_PATH=/app/data
+    volumes:
+      - ./configs.yml:/app/configs.yml:ro
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; exit(0) if os.path.exists('/app/data/tracked_accounts.db') else exit(1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+```
+
+### 3. 創建系統服務（推薦方式）
+
+創建一個 systemd 服務來管理您的 X Bot：
+
+```bash
+# 創建服務文件
+sudo nano /etc/systemd/system/x-bot.service
+```
+
+在文件中輸入以下內容：
+
+```ini
+[Unit]
+Description=X Bot Notification System
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/sisisibibi/x-bot-ntf
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+```
+
+然後啟用服務：
+
+```bash
+# 重新載入 systemd 配置
+sudo systemctl daemon-reload
+
+# 啟用服務（開機自動啟動）
+sudo systemctl enable x-bot.service
+
+# 立即啟動服務
+sudo systemctl start x-bot.service
+
+# 檢查狀態
+sudo systemctl status x-bot.service
+```
+
+### 4. 驗證自動啟動
+
+測試配置是否正確：
+
+```bash
+# 檢查容器狀態
+docker compose ps
+
+# 重啟 VM 測試（可選）
+sudo reboot
+
+# 重新連接後檢查
+docker compose ps
+sudo systemctl status x-bot.service
+```
+
+## 🛡️ 持續運行保障
+
+### 重啟策略說明
+
+在 `docker-compose.yml` 中的 `restart: unless-stopped` 策略：
+
+- ✅ **容器崩潰**：自動重啟
+- ✅ **Docker 服務重啟**：自動重啟容器
+- ✅ **VM 重啟**：開機後自動啟動
+- ✅ **網絡中斷**：重新連接後繼續運行
+- ❌ **手動停止**：不會自動重啟（需要手動啟動）
+
+### 監控和維護命令
+
+```bash
+# 檢查服務狀態
+sudo systemctl status x-bot.service
+
+# 檢查容器狀態
+docker compose ps
+
+# 查看實時日誌
+docker compose logs -f
+
+# 手動重啟服務
+sudo systemctl restart x-bot.service
+
+# 停止服務（維護時使用）
+sudo systemctl stop x-bot.service
+
+# 重新啟動服務
+sudo systemctl start x-bot.service
+```
+
+### 資料持久化
+
+確保重要資料不會丟失：
+
+```bash
+# 定期備份資料庫
+mkdir -p ~/backups
+tar -czf ~/backups/x-bot-backup-$(date +%Y%m%d_%H%M%S).tar.gz ~/x-bot-ntf/data/
+
+# 檢查資料目錄
+ls -la ~/x-bot-ntf/data/
+```
+
+## 🚨 故障自動恢復
+
+### 健康檢查配置
+
+Docker Compose 已配置健康檢查，會自動：
+
+1. **每 30 秒檢查**應用狀態
+2. **失敗 3 次後**重啟容器
+3. **啟動後等待 40 秒**再開始檢查
+
+### 日誌監控
+
+```bash
+# 監控錯誤日誌
+docker compose logs --tail=50 -f | grep -i error
+
+# 檢查系統資源
+docker stats
+
+# 檢查磁碟空間
+df -h
+```
+
 ## 安全建議
 
 1. **防火牆設置**：只開放必要的端口
