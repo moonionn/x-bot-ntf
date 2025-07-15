@@ -393,3 +393,26 @@ logging:
 2. 確認配置文件正確
 3. 查看項目的其他文檔文件
 4. 提交 Issue 到 GitHub 倉庫
+
+### 翻譯模式配置
+
+如果您只使用翻譯功能而不需要 Twitter 監控，可以設置翻譯模式以避免啟動警告：
+
+```env
+# Discord Bot Token (必需)
+BOT_TOKEN=your_discord_bot_token_here
+
+# Gemini AI API Key (翻譯功能必需)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# 數據路徑
+DATA_PATH=./data
+
+# Twitter Token (翻譯模式可設為假值)
+TWITTER_TOKEN=DummyAccount:dummy_token_placeholder
+```
+
+**說明：**
+- 在翻譯模式下，`TWITTER_TOKEN` 可以設為假值，避免啟動時的環境變數錯誤
+- Bot 會自動檢測配置，如果只有翻譯功能會進入翻譯模式
+- 這樣可以正常使用翻譯功能而不會出現啟動警告

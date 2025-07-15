@@ -55,27 +55,39 @@ def check_configs(configs):
     return True
 
 
-def check_env():
-    required_keys = [
-        'BOT_TOKEN', 'DATA_PATH', 'TWITTER_TOKEN'
-    ]
+def check_env(translation_only_mode=False):
+    if translation_only_mode:
+        # 在純翻譯模式下，只需要基本的環境變數
+        required_keys = ['BOT_TOKEN', 'DATA_PATH']
+        log.info('running in translation-only mode, TWITTER_TOKEN not required')
+    else:
+        required_keys = ['BOT_TOKEN', 'DATA_PATH', 'TWITTER_TOKEN']
 
     missing_keys = [key for key in required_keys if key not in os.environ]
     if missing_keys:
         log.error(f'missing required environment variables: {missing_keys}')
         return False
 
-    twitter_token = os.getenv('TWITTER_TOKEN')
-    if not all([(lambda e : len(e) == 2 and all(e))(entry.split(':')) for entry in twitter_token.split(',')]):
-        log.error('invalid TWITTER_TOKEN format, must be in the form of "account_name:twitter_token"')
-        return False
+    # 只在非翻譯模式或者 TWITTER_TOKEN 存在時檢查格式
+    if not translation_only_mode or os.getenv('TWITTER_TOKEN'):
+        twitter_token = os.getenv('TWITTER_TOKEN')
+        if twitter_token and not all([(lambda e : len(e) == 2 and all(e))(entry.split(':')) for entry in twitter_token.split(',')]):
+            log.error('invalid TWITTER_TOKEN format, must be in the form of "account_name:twitter_token"')
+            return False
 
     log.info('environment variables check passed')
     return True
 
 # currently only client_used is checked
-async def check_db() -> set[str]:
+async def check_db(translation_only_mode=False) -> set[str]:
+    if translation_only_mode and not os.getenv('TWITTER_TOKEN'):
+        log.info('running in translation-only mode, skipping database client check')
+        return set()
+        
     twitter_token = os.getenv('TWITTER_TOKEN')
+    if not twitter_token:
+        log.warning('TWITTER_TOKEN not found, skipping database client check')
+        return set()
     
     async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
         async with db.execute('SELECT client_used FROM user') as cursor:

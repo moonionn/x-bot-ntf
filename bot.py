@@ -29,8 +29,18 @@ async def on_ready():
         await init_db()
         
     check_upgrade()
+    
+    # 檢查是否只在翻譯模式下運行
+    translation_only_mode = (
+        'translation' in configs and 
+        configs.get('translation', {}).get('auto_translate_channels') and
+        not os.getenv('TWITTER_TOKEN')
+    )
+    
+    if translation_only_mode:
+        log.info('detected translation-only configuration, running in translation mode')
         
-    if not check_env():
+    if not check_env(translation_only_mode):
         log.warning('incomplete environment variables detected, will retry in 30 seconds')
         await asyncio.sleep(30)
         load_dotenv()
@@ -40,7 +50,7 @@ async def on_ready():
         await asyncio.sleep(30)
         os.execv(sys.executable, ['python'] + sys.argv)
         
-    invalid_clients = await check_db()
+    invalid_clients = await check_db(translation_only_mode)
     if invalid_clients:
         log.warning('detected environment variable undefined client name in database')
         if configs['auto_repair_mismatched_clients']:
