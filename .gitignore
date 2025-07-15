@@ -169,6 +169,6 @@ configs.yml
 *.tw_session
 
 # docker & fly.io
-Dockerfile
-.dockerignore
+# Dockerfile
+# .dockerignore
 fly.toml
