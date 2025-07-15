@@ -265,8 +265,10 @@ async def auto_translate_tweet(message, tweet_url, translator, target_channel_id
                 
                 # 處理翻譯結果
                 translated_text = result["translated_text"]
-                if any(keyword in translated_text for keyword in ["翻譯一 (直接翻譯", "翻譯二 (最自然", "## 詞句詳細解說"]):
-                    # 分割並格式化翻譯結果
+                
+                # 檢查是否有結構化的翻譯結果
+                if any(keyword in translated_text for keyword in ["翻譯一", "翻譯二", "## 詞句詳細解說"]):
+                    # 分割翻譯結果和詞句解說
                     if "## 詞句詳細解說" in translated_text:
                         parts = translated_text.split("## 詞句詳細解說")
                         translation_part = parts[0].strip()
@@ -275,28 +277,37 @@ async def auto_translate_tweet(message, tweet_url, translator, target_channel_id
                         translation_part = translated_text
                         explanation_part = ""
                     
-                    # 提取翻譯內容（移除原文部分）
+                    # 清理並格式化翻譯部分
+                    # 移除原文部分，只保留翻譯
                     lines = translation_part.split('\n')
                     translation_content = []
-                    skip_until_translation = True
+                    include_line = False
                     
                     for line in lines:
-                        if "翻譯一 (直接翻譯" in line or "翻譯二 (最自然" in line:
-                            skip_until_translation = False
+                        line_stripped = line.strip()
+                        # 開始包含翻譯一或翻譯二的內容
+                        if "翻譯一" in line_stripped or "翻譯二" in line_stripped:
+                            include_line = True
                             translation_content.append(line)
-                        elif not skip_until_translation and not line.strip().endswith("原文："):
-                            translation_content.append(line)
+                        elif include_line and line_stripped:
+                            # 跳過原文部分
+                            if not (line_stripped.endswith("原文：") or "原文：" in line_stripped):
+                                translation_content.append(line)
                     
                     final_translation = '\n'.join(translation_content).strip()
                     
+                    # 如果沒有找到格式化內容，使用原始翻譯
+                    if not final_translation:
+                        final_translation = translated_text
+                    
                     embed.add_field(
                         name="🌏 翻譯結果",
-                        value=final_translation[:1024],
+                        value=final_translation[:1024] if final_translation else translated_text[:1024],
                         inline=False
                     )
                     
-                    # 直接顯示詞句詳細解說
-                    if explanation_part:
+                    # 添加詞句詳細解說（如果存在）
+                    if explanation_part and len(explanation_part.strip()) > 10:
                         # 限制詞句解說的長度
                         if len(explanation_part) > 1000:
                             explanation_part = explanation_part[:1000] + "..."
@@ -307,9 +318,9 @@ async def auto_translate_tweet(message, tweet_url, translator, target_channel_id
                             inline=False
                         )
                 else:
-                    # 簡單翻譯格式
+                    # 簡單翻譯格式 - 沒有結構化內容
                     embed.add_field(
-                        name="🌏 翻譯結果",
+                        name="🌏 翻譯結果", 
                         value=translated_text[:1024],
                         inline=False
                     )
