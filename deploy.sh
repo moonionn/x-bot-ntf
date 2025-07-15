@@ -21,14 +21,28 @@ if ! command -v docker &> /dev/null; then
         gnupg \
         lsb-release
     
+    # 檢測 Linux 發行版
+    if [ -f /etc/debian_version ]; then
+        DISTRO="debian"
+        CODENAME=$(lsb_release -cs)
+    elif [ -f /etc/lsb-release ]; then
+        DISTRO="ubuntu"
+        CODENAME=$(lsb_release -cs)
+    else
+        echo "❌ 不支援的 Linux 發行版"
+        exit 1
+    fi
+    
+    echo "🔍 檢測到系統: $DISTRO $CODENAME"
+    
     # 添加 Docker 官方 GPG 密鑰
     sudo mkdir -m 0755 -p /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    curl -fsSL https://download.docker.com/linux/${DISTRO}/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     
     # 設置穩定版本倉庫
     echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${DISTRO} \
+      ${CODENAME} stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     
     # 安裝 Docker
     sudo apt-get update
