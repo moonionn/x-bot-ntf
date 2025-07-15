@@ -226,9 +226,17 @@ async def auto_translate_tweet(message, tweet_url, translator, target_channel_id
             if result["success"]:
                 # 創建翻譯結果embed
                 embed = discord.Embed(
-                    title="🤖 自動翻譯",
+                    title="翻譯結果",
                     color=0x1da0f2
                 )
+                
+                # 添加發文者資訊（如果成功提取到）
+                if result.get("username"):
+                    embed.add_field(
+                        name="👤 發文者",
+                        value=f"@{result['username']}",
+                        inline=True
+                    )
                 
                 # 如果是發送到分離的翻譯頻道，添加來源信息
                 if is_separate_channel:
@@ -287,18 +295,15 @@ async def auto_translate_tweet(message, tweet_url, translator, target_channel_id
                         inline=False
                     )
                     
-                    # 使用 Discord 的 spoiler 標籤創建可折疊效果
+                    # 直接顯示詞句詳細解說
                     if explanation_part:
                         # 限制詞句解說的長度
-                        if len(explanation_part) > 900:
-                            explanation_part = explanation_part[:900] + "..."
-                        
-                        # 使用 spoiler 標籤包裹詞句解說，創造折疊效果
-                        collapsible_explanation = f"||{explanation_part}||"
+                        if len(explanation_part) > 1000:
+                            explanation_part = explanation_part[:1000] + "..."
                         
                         embed.add_field(
-                            name="📚 詞句詳細解說 (點擊展開)",
-                            value=collapsible_explanation,
+                            name="📚 詞句詳細解說",
+                            value=explanation_part,
                             inline=False
                         )
                 else:
@@ -312,14 +317,14 @@ async def auto_translate_tweet(message, tweet_url, translator, target_channel_id
                 # 根據消息來源和發送方式設置不同的footer
                 if is_separate_channel:
                     if message.author.bot:
-                        embed.set_footer(text="🤖 自動翻譯推文通知 | 由 Gemini AI 提供翻譯服務")
+                        embed.set_footer(text="🤖 自動翻譯推文通知 | 由 Gemini AI 提供翻譯服務，僅供參考。")
                     else:
-                        embed.set_footer(text="🤖 自動翻譯用戶連結 | 由 Gemini AI 提供翻譯服務")
+                        embed.set_footer(text="🤖 自動翻譯用戶連結 | 由 Gemini AI 提供翻譯服務，僅供參考。")
                 else:
                     if message.author.bot:
-                        embed.set_footer(text="🤖 自動翻譯推文通知 | 由 Gemini AI 提供翻譯服務")
+                        embed.set_footer(text="🤖 自動翻譯推文通知 | 由 Gemini AI 提供翻譯服務，僅供參考。")
                     else:
-                        embed.set_footer(text="🤖 自動翻譯 | 由 Gemini AI 提供翻譯服務")
+                        embed.set_footer(text="🤖 自動翻譯 | 由 Gemini AI 提供翻譯服務，僅供參考。")
                 
                 # 發送翻譯結果
                 if is_separate_channel:

@@ -20,6 +20,7 @@ cd x_bot_ntf
 ```
 
 這個腳本會：
+
 - 自動安裝 Docker（如果未安裝）
 - 創建必要的配置文件
 - 構建並啟動 Docker 容器
@@ -152,13 +153,13 @@ sudo systemctl status docker
 編輯 `docker-compose.yml` 確保有重啟策略：
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   x-bot:
     build: .
     container_name: x-bot-ntf
-    restart: unless-stopped  # 這是關鍵！除非手動停止，否則總是重啟
+    restart: unless-stopped # 這是關鍵！除非手動停止，否則總是重啟
     environment:
       - DATA_PATH=/app/data
     volumes:
@@ -168,7 +169,13 @@ services:
     networks:
       - bot-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import os; exit(0) if os.path.exists('/app/data/tracked_accounts.db') else exit(1)"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import os; exit(0) if os.path.exists('/app/data/tracked_accounts.db') else exit(1)",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

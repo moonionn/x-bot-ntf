@@ -45,6 +45,33 @@ class TweetTranslator:
         # 使用用戶指定的 gemini-2.5-pro 模型
         return model_candidates[0]
         
+    def extract_username_from_url(self, tweet_url: str) -> Optional[str]:
+        """
+        從推文 URL 中提取發文者的用戶名
+        
+        Args:
+            tweet_url: 推文網址
+            
+        Returns:
+            發文者的用戶名，如果提取失敗則返回 None
+        """
+        try:
+            import re
+            # 匹配 Twitter/X URL 格式：https://twitter.com/username/status/1234567890
+            # 或 https://x.com/username/status/1234567890
+            pattern = r'https?://(?:twitter\.com|x\.com)/([^/]+)/status/\d+'
+            match = re.match(pattern, tweet_url)
+            if match:
+                username = match.group(1)
+                log.info(f"從 URL 提取到用戶名: {username}")
+                return username
+            else:
+                log.warning(f"無法從 URL 提取用戶名: {tweet_url}")
+                return None
+        except Exception as e:
+            log.error(f"提取用戶名時發生錯誤: {e}")
+            return None
+
     async def fetch_tweet_content(self, tweet_url: str) -> Optional[str]:
         """
         爬取推文內容 - 僅提取發文者的原始推文內容
@@ -261,6 +288,7 @@ class TweetTranslator:
 1. 翻譯要自然流暢，符合中文表達習慣
 2. 保留原文的語氣和情感
 3. 如有emoji請保留
+4. Tip, Racha, Namtan, Film, Ying, Muv, Any, Polcasan, Sang 為人名
 4. 提供詳細的詞彙解析，特別是特殊用法或文化背景
 5. 兩種翻譯風格都要用引號包圍
 6. 註釋要詳細說明特殊詞彙的含義和文化背景"""
@@ -359,18 +387,25 @@ class TweetTranslator:
             target_language: 目標語言
             
         Returns:
-            包含原文和翻譯的字典
+            包含原文、翻譯和發文者資訊的字典
         """
         result = {
             "success": False,
             "original_text": None,
             "cleaned_text": None,  # 新增：顯示清理後的文字
             "translated_text": None,
+            "username": None,  # 新增：發文者用戶名
             "error": None
         }
         
         try:
-            # 步驟1: 爬取推文內容
+            # 步驟1: 提取發文者用戶名
+            username = self.extract_username_from_url(tweet_url)
+            if username:
+                result["username"] = username
+                log.info(f"推文發文者: @{username}")
+            
+            # 步驟2: 爬取推文內容
             log.info(f"正在爬取推文內容: {tweet_url}")
             raw_content = await self.fetch_tweet_content(tweet_url)
             
@@ -381,7 +416,7 @@ class TweetTranslator:
             result["original_text"] = raw_content
             log.info(f"成功獲取推文內容 (長度: {len(raw_content)}): {raw_content[:100]}...")
             
-            # 步驟2: 進一步清理內容（移除非發文者內容）
+            # 步驟3: 進一步清理內容（移除非發文者內容）
             cleaned_content = self._further_clean_for_translation(raw_content)
             
             if not cleaned_content or len(cleaned_content.strip()) < 2:

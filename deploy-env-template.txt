@@ -1,0 +1,16 @@
+# Discord Bot 配置
+BOT_TOKEN=your_discord_bot_token_here
+
+# Twitter/X 客戶端配置
+CLIENT_NAME_1=your_twitter_client_name_1
+CLIENT_NAME_2=your_twitter_client_name_2
+# ... 根據需要添加更多客戶端
+
+# 翻譯功能配置 (新增)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# 數據庫路徑
+DATA_PATH=./data
+
+# 其他配置
+# 根據你的 configs.yml 檢查是否還需要其他環境變數

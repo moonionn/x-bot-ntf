@@ -96,6 +96,14 @@ class Translation(Cog_Extension):
                     color=0x00ff00
                 )
                 
+                # 添加發文者資訊（如果成功提取到）
+                if result.get("username"):
+                    embed.add_field(
+                        name="👤 發文者",
+                        value=f"@{result['username']}",
+                        inline=True
+                    )
+                
                 # 格式化原文 - 不需要語言檢測
                 original_text = result["original_text"]
                 
@@ -216,7 +224,7 @@ class Translation(Cog_Extension):
                 #     inline=False
                 # )
                 
-                embed.set_footer(text="由 Gemini AI 提供翻譯服務")
+                embed.set_footer(text="由 Gemini AI 提供翻譯服務，僅供參考。")
                 
                 # 創建一個按鈕，讓用戶可以將翻譯結果發送到頻道
                 view = TextTranslationResultView(embed)
@@ -352,7 +360,7 @@ class TranslationResultView(discord.ui.View):
                     inline=field.inline
                 )
             
-            public_embed.set_footer(text=f"翻譯請求者: {interaction.user.display_name} | 由 Gemini AI 提供翻譯服務")
+            public_embed.set_footer(text=f"翻譯請求者: {interaction.user.display_name} | 由 Gemini AI 提供翻譯服務，僅供參考。")
             
             await interaction.response.send_message(embed=public_embed)
             
@@ -393,7 +401,7 @@ class TextTranslationResultView(discord.ui.View):
                     inline=field.inline
                 )
             
-            public_embed.set_footer(text=f"翻譯請求者: {interaction.user.display_name} | 由 Gemini AI 提供翻譯服務")
+            public_embed.set_footer(text=f"翻譯請求者: {interaction.user.display_name} | 由 Gemini AI 提供翻譯服務，僅供參考。")
             
             await interaction.response.send_message(embed=public_embed)
             
