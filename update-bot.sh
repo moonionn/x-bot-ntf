@@ -34,13 +34,18 @@ fi
 
 # 恢復配置文件（如果被覆蓋）
 echo "🔧 恢復配置文件..."
-if [ -f "configs.yml.backup.$(date +%Y%m%d)_"* ]; then
+
+# 檢查是否有配置備份文件
+config_backups=$(ls configs.yml.backup.* 2>/dev/null | wc -l)
+if [ "$config_backups" -gt 0 ]; then
     latest_config=$(ls -t configs.yml.backup.* | head -1)
     cp "$latest_config" configs.yml
     echo "✅ 已恢復配置文件: $latest_config"
 fi
 
-if [ -f ".env.backup.$(date +%Y%m%d)_"* ]; then
+# 檢查是否有環境變數備份文件
+env_backups=$(ls .env.backup.* 2>/dev/null | wc -l)
+if [ "$env_backups" -gt 0 ]; then
     latest_env=$(ls -t .env.backup.* | head -1)
     cp "$latest_env" .env
     echo "✅ 已恢復環境變數文件: $latest_env"
