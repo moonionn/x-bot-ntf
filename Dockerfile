@@ -25,7 +25,7 @@ ENV PYTHONPATH=/app
 ENV DATA_PATH=/app/data
 
 # 創建非 root 用戶以提高安全性
-RUN useradd -m -u 1000 botuser && chown -R botuser:botuser /app
+RUN adduser -D -u 1000 botuser && chown -R botuser:botuser /app
 USER botuser
 
 # 暴露端口（如果需要健康檢查或監控）
