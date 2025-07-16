@@ -218,11 +218,11 @@ class Translation(Cog_Extension):
                     inline=False
                 )
                 
-                # embed.add_field(
-                #     name=f"🌏 翻譯 ({language})",
-                #     value=self._truncate_text(translated_text, 1024),
-                #     inline=False
-                # )
+                embed.add_field(
+                    name=f"🌏 翻譯 ({language})",
+                    value=self._truncate_text(translated_text, 1024),
+                    inline=False
+                )
                 
                 embed.set_footer(text="由 Gemini AI 提供翻譯服務，僅供參考。")
                 
