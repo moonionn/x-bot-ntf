@@ -263,22 +263,22 @@ class TweetTranslator:
 原文：
 {text}
 
-翻譯一 (直接翻譯，保留原意):
-「[直接翻譯的內容，保持原文的語氣和風格]」
+翻譯一 (直翻，保留原意):
+「[直接翻譯，保留原文的語氣和風格]」
 (註：[如有特殊詞彙、文化背景、語言混用等需要說明的地方])
 
 翻譯二 (自然口語化翻譯):
 「[最符合中文表達習慣的自然翻譯]」
 
-## 詞句詳細解說
-[對原文中的重要詞彙(撇除人名、Phi、Nong、Khun、Kab、na kab)、片語進行解釋，包括含義、文化背景等]
+## 詞彙解說
+[對重要詞彙(撇除人名、Phi、Nong、Khun、Kab、na kab)、片語進行解釋，包括含義、文化背景等]
 
 注意：
-1. 自然流暢，符合中文表達習慣。保留emoji和語氣情感，兩種翻譯要用引號包圍
-2. 人名識別：Tip, Racha, Namtan, Film, Ying, Muv, MuvMuv, Any, Polcasan, Sang, Naree, TipNaree
-3. 注意拖長音，如：ร้าช้าาาา (Racha)等等人名
+1. 自然流暢，符合中文表達習慣。保留emoji和語氣情感，兩種翻譯用引號包圍
+2. 人名：Tip, Racha, Namtan, Film, Ying, Muv, MuvMuv, Any, Polcasan, Sang, Naree, TipNaree
+3. 有拖長音，如：ร้าช้าาาา (Racha)等等人名
 4. 提供詞彙解析，特別是特殊用法或文化背景
-5. 註釋說明特殊詞彙的含義和文化背景"""
+5. X文章可能包含keyword或hashtag，此不需詞彙解釋"""
 
             # 使用新的 SDK 生成內容 - 調整為適合 gemini-2.5-pro 的配置
             if types:
