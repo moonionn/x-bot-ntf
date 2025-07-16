@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir uv
 
 # 複製 requirements.txt 並安裝 Python 依賴
 COPY requirements.txt .
-RUN uv pip install --no-cache-dir -r requirements.txt
+RUN uv pip install --system --no-cache-dir -r requirements.txt
 
 # 複製應用程式代碼
 COPY . .
