@@ -76,14 +76,9 @@ mkdir -p logs
 
 # 檢查必要的配置文件
 if [ ! -f "configs.yml" ]; then
-    echo "⚠️  未找到 configs.yml，正在從範例複製..."
-    if [ -f "configs.example.yml" ]; then
-        cp configs.example.yml configs.yml
-        echo "📝 請編輯 configs.yml 文件設置您的配置"
-    else
-        echo "❌ 未找到配置範例文件"
-        exit 1
-    fi
+    echo "❌ 未找到 configs.yml 配置文件"
+    echo "請手動創建 configs.yml 配置文件"
+    exit 1
 fi
 
 if [ ! -f ".env" ]; then
