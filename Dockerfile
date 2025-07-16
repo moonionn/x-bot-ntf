@@ -8,8 +8,9 @@ WORKDIR /app
 RUN apk add --no-cache \
     gcc \
     musl-dev \
-    linux-headers \
-    pip install --no-cache-dir uv
+    linux-headers
+
+RUN pip install --no-cache-dir uv
 
 # 複製 requirements.txt 並安裝 Python 依賴
 COPY requirements.txt .
