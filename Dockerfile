@@ -16,15 +16,15 @@ RUN pip install --no-cache-dir uv
 COPY requirements.txt .
 RUN uv pip install --system --no-cache-dir -r requirements.txt
 
-# 複製應用程式代碼
-COPY . .
+# 設定環境變數
+ENV PYTHONPATH=/app
+ENV DATA_PATH=/app/data
 
 # 創建必要的目錄
 RUN mkdir -p /app/data
 
-# 設定環境變數
-ENV PYTHONPATH=/app
-ENV DATA_PATH=/app/data
+# 複製應用程式代碼
+COPY . .
 
 # 創建非 root 用戶以提高安全性
 RUN adduser -D -u 1000 botuser && chown -R botuser:botuser /app
