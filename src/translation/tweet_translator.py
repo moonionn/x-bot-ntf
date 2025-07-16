@@ -291,7 +291,7 @@ class TweetTranslator:
                         model=self.model_name,
                         contents=prompt,
                         config=types.GenerateContentConfig(
-                            temperature=0.3,
+                            temperature=0.5,
                             max_output_tokens=16384,  # 增加輸出 token 限制以支援格式化輸出
                             top_p=0.95,
                             top_k=40,
