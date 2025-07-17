@@ -33,22 +33,30 @@ if [ $? -ne 0 ]; then
 fi
 
 # 恢復配置文件（如果被覆蓋）
-echo "🔧 恢復配置文件..."
+echo "🔧 檢查配置文件..."
 
-# 檢查是否有配置備份文件
-config_backups=$(ls configs.yml.backup.* 2>/dev/null | wc -l)
-if [ "$config_backups" -gt 0 ]; then
-    latest_config=$(ls -t configs.yml.backup.* | head -1)
-    cp "$latest_config" configs.yml
-    echo "✅ 已恢復配置文件: $latest_config"
+# 檢查 configs.yml 是否存在，不存在才恢復備份
+if [ ! -f "configs.yml" ]; then
+    config_backups=$(ls configs.yml.backup.* 2>/dev/null | wc -l)
+    if [ "$config_backups" -gt 0 ]; then
+        latest_config=$(ls -t configs.yml.backup.* | head -1)
+        cp "$latest_config" configs.yml
+        echo "✅ 已恢復配置文件: $latest_config"
+    fi
+else
+    echo "ℹ️  使用新版本的配置文件"
 fi
 
-# 檢查是否有環境變數備份文件
-env_backups=$(ls .env.backup.* 2>/dev/null | wc -l)
-if [ "$env_backups" -gt 0 ]; then
-    latest_env=$(ls -t .env.backup.* | head -1)
-    cp "$latest_env" .env
-    echo "✅ 已恢復環境變數文件: $latest_env"
+# 檢查 .env 是否存在，不存在才恢復備份
+if [ ! -f ".env" ]; then
+    env_backups=$(ls .env.backup.* 2>/dev/null | wc -l)
+    if [ "$env_backups" -gt 0 ]; then
+        latest_env=$(ls -t .env.backup.* | head -1)
+        cp "$latest_env" .env
+        echo "✅ 已恢復環境變數文件: $latest_env"
+    fi
+else
+    echo "ℹ️  使用新版本的環境變數文件"
 fi
 
 # 重新構建 Docker 映像
