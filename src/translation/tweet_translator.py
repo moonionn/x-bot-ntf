@@ -277,14 +277,17 @@ class TweetTranslator:
 [對重要詞彙進行羅馬拼音標註和解釋，包含語氣詞、俚語等]
 
 **文化背景說明：**
-[如有特殊用法、文化背景或語言特色需要說明]
+[如有特殊用法、文化背景或語言特色需要說明(人名、CP 名稱等不解釋)]
 
 翻譯要求：
+- 不要出現，這就為您翻譯並分析這則社群媒體內容等開頭，直接進入翻譯。
 - 保留原文的語氣情感和 emoji
 - 人名識別：Tip, Racha, Namtan, Film, Ying, Muv, Any, Polcasan, Sang, Naree, TipNaree, MuvMuv
+- CP 名稱識別：TipRacha, NamtanFilm, MilkLove
 - 注意拖長音處理：ร้าช้าาาา → Racha
 - 提供自然流暢的台灣口語化翻譯
-- 解釋泰文語氣詞和俚語的含義"""
+- 解釋泰文語氣詞和俚語的含義
+- 注意X推文有Keyword和Hashtag的使用，保留原有格式，但不用解釋"""
 
             # 使用新的 SDK 生成內容 - 調整為適合 gemini-2.5-pro 的配置
             if types:
