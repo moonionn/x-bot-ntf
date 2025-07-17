@@ -166,7 +166,9 @@ class Translation(Cog_Extension):
         self, 
         interaction: discord.Interaction, 
         text: str, 
-        language: str = "繁體中文"
+        language: str = "繁體中文",
+        where: str = None,
+        from_user: str = None
     ):
         """
         翻譯一般文字
@@ -177,6 +179,10 @@ class Translation(Cog_Extension):
             要翻譯的文字
         language: str
             目標語言 (預設: 繁體中文)
+        where: str
+            平台名稱 (可選，例如: Twitter, Instagram, Facebook)
+        from_user: str
+            發文者用戶名 (可選)
         """
         await interaction.response.defer(ephemeral=True)
         
@@ -204,7 +210,7 @@ class Translation(Cog_Extension):
             )
             await interaction.followup.send(embed=embed, ephemeral=True)
             
-            translated_text = await self.translator.translate_text(text, language)
+            translated_text = await self.translator.translate_text(text, language, where, from_user)
             
             if translated_text:
                 embed = discord.Embed(

@@ -246,19 +246,21 @@ class TweetTranslator:
         
         return content
     
-    async def translate_text(self, text: str, target_language: str = "繁體中文") -> Optional[str]:
+    async def translate_text(self, text: str, target_language: str = "繁體中文", platform: str = None, username: str = None) -> Optional[str]:
         """
         使用新的 Google Gen AI SDK 翻譯文字 - 專門針對社群媒體內容優化
         
         Args:
-            text: 要翻譯的文字（已清理的推文內容）
-            target_language: 目標語言
+        text: 要翻譯的文字（已清理的推文內容）
+        target_language: 目標語言
+        platform: 平台名稱（可選，僅用於手動指令）
+        username: 發文者用戶名（可選，僅用於手動指令）
             
         Returns:
             翻譯結果，如果失敗則返回 None
         """
         try:
-            prompt = f"""請將以下社群媒體內容翻譯成{target_language}，並按照以下格式輸出：
+            prompt = f"""將以下社群媒體內容翻譯成{target_language}：
 
 原文：
 {text}
@@ -342,8 +344,20 @@ class TweetTranslator:
             # 檢查各種可能的回應格式
             if hasattr(response, 'text') and response.text:
                 translated_text = response.text.strip()
+
+                # 只有在手動指令且提供來源資訊時才添加前綴
+                if platform or username:
+                    source_info = ""
+                    if username and platform:
+                        source_info = f"來自 {username}'s {platform}\n\n"
+                    elif username:
+                        source_info = f"來自 {username}\n\n"
+                    elif platform:
+                        source_info = f"來自 {platform}\n\n"
+                    
+                    if source_info:
+                        translated_text = f"{source_info}{translated_text}"
                 
-                # 不移除前綴，保持格式化輸出的完整性
                 if translated_text and len(translated_text.strip()) > 0:
                     log.info(f"翻譯成功: {translated_text[:100]}...")
                     return translated_text
@@ -363,6 +377,20 @@ class TweetTranslator:
                         part = candidate.content.parts[0]
                         if hasattr(part, 'text') and part.text:
                             translated_text = part.text.strip()
+
+                            # 只有在手動指令且提供來源資訊時才添加前綴
+                            if platform or username:
+                                source_info = ""
+                                if username and platform:
+                                    source_info = f"來自 {username}'s {platform}\n\n"
+                                elif username:
+                                    source_info = f"來自 {username}\n\n"
+                                elif platform:
+                                    source_info = f"來自 {platform}\n\n"
+                                
+                                if source_info:
+                                    translated_text = f"{source_info}{translated_text}"
+
                             if translated_text:
                                 log.info(f"翻譯成功: {translated_text[:100]}...")
                                 return translated_text
