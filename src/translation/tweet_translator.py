@@ -183,8 +183,8 @@ class TweetTranslator:
                 return content.strip()
         
         return None
-    
-    def _clean_tweet_content(self, content: str) -> str:
+
+    def _clean_tweet_content(self, content: str, tracked_users: list = None) -> str:
         """
         清理推文內容，移除不必要的部分，但保留 emoji 和特殊字符
         
@@ -194,6 +194,23 @@ class TweetTranslator:
         Returns:
             清理後的內容
         """
+
+        # 檢查是否為單純轉推，如果是就直接返回空字串
+        rt_match = re.match(r'^RT @(\w+):\s*(.*?)$', content.strip(), re.DOTALL)
+        if rt_match:
+            retweeted_username = rt_match.group(1).lower() # 被轉推的用戶名
+            remaining_content = rt_match.group(2).strip()
+
+            # 如果是單純轉推（沒有額外評論）
+            if not remaining_content:
+                # 檢查被轉推的用戶是否在追蹤列表中
+                if tracked_users and retweeted_username in [user.lower() for user in tracked_users]:
+                    log.info(f"偵測到對追蹤用戶 @{retweeted_username} 的單純轉推，跳過翻譯")
+                    return ""
+                else:
+                    log.info(f"偵測到對非追蹤用戶 @{retweeted_username} 的單純轉推，繼續處理")
+            return ""
+
         # 保持原始內容的完整性，只做必要的清理
         original_content = content
         
@@ -402,7 +419,7 @@ class TweetTranslator:
             log.error(f"新 SDK 翻譯失敗: {e}")
             return None
     
-    async def translate_tweet(self, tweet_url: str, target_language: str = "繁體中文") -> dict:
+    async def translate_tweet(self, tweet_url: str, target_language: str = "繁體中文", tracked_users: list = None) -> dict:
         """
         完整的推文翻譯流程 - 只翻譯發文者的原始內容
         
@@ -441,7 +458,7 @@ class TweetTranslator:
             log.info(f"成功獲取推文內容 (長度: {len(raw_content)}): {raw_content[:100]}...")
             
             # 步驟3: 進一步清理內容（移除非發文者內容）
-            cleaned_content = self._further_clean_for_translation(raw_content)
+            cleaned_content = self._further_clean_for_translation(raw_content, tracked_users)
             
             if not cleaned_content or len(cleaned_content.strip()) < 2:
                 # 如果清理後內容太少，使用原始內容
@@ -469,7 +486,7 @@ class TweetTranslator:
         
         return result
     
-    def _further_clean_for_translation(self, content: str) -> str:
+    def _further_clean_for_translation(self, content: str, tracked_users: list = None) -> str:
         """
         為翻譯進一步清理內容，確保只包含發文者的核心內容
         
@@ -479,6 +496,14 @@ class TweetTranslator:
         Returns:
             進一步清理後的內容
         """
+
+         # 首先使用原有的清理邏輯
+        content = self._clean_tweet_content(content, tracked_users)
+        
+        # 如果已經被標記為跳過（返回空字串），直接返回
+        if not content:
+            return content
+
         # 移除用戶提及（但保留在句子中間的提及）
         content = re.sub(r'^@\w+\s+', '', content)  # 移除開頭的 @username
         
