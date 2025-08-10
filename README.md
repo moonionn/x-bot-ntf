@@ -6,6 +6,13 @@
 
 一個功能豐富的 Discord 機器人，提供 Twitter 追蹤通知和自動翻譯功能
 
+本專案基於以下開源專案開發：
+
+## 原始專案
+**專案名稱**: [Tweetcord]
+**作者**: [Yuuzi261]
+**原始碼**: [[GitHub 連結](https://github.com/Yuuzi261/Tweetcord)]
+
 </div>
 
 ## � 簡介
@@ -339,13 +346,6 @@ docker compose up -d
 3. **查看 console.log** - 詳細的執行日誌
 4. **確認配置正確** - 檢查 configs.yml 和環境變數設置
 
-## 🔄 保持更新
-
-建議定期查看以下文件以獲取最新資訊：
-
-- **[UPGRADE_SUMMARY.md](UPGRADE_SUMMARY.md)** - 版本更新內容
-- **[docs/CHANGELOG.md](docs/CHANGELOG.md)** - 詳細變更記錄
-
 ---
 
-**開始您的 X Bot NTF 之旅吧！** 🎉
+**開始您的 X Bot trnaslation 之旅吧！** 🎉
